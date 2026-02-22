@@ -1,12 +1,11 @@
 using SharpFastboot;
 using SharpFastboot.Usb;
+using SharpFastboot.Usb.libusbdotnet;
+using SharpFastboot.Usb.Linux;
+using SharpFastboot.Usb.macOS;
 using SharpFastboot.Usb.Windows;
-using SharpFastboot.DataModel;
-using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
-using System.Linq;
+using System.Runtime.InteropServices;
 
 namespace FastbootCLI
 {
@@ -15,9 +14,11 @@ namespace FastbootCLI
         private static string? serial = null;
         private static string? slot = null;
         private static bool wipe = false;
+        private static bool forceLibUsb = false;
 
         static void Main(string[] args)
         {
+            forceLibUsb = Environment.GetEnvironmentVariable("SHARP_FASTBOOT_LIBUSB") == "1";
             if (args.Length == 0)
             {
                 ShowHelp();
@@ -35,6 +36,10 @@ namespace FastbootCLI
                 else if (arg == "-w")
                 {
                     wipe = true;
+                }
+                else if (arg == "-l" || arg == "--libusb")
+                {
+                    forceLibUsb = true;
                 }
                 else if (arg == "--slot" && i < args.Length)
                 {
@@ -129,9 +134,12 @@ namespace FastbootCLI
                     }
                     else
                     {
-                        try {
+                        try
+                        {
                             Console.WriteLine(args[0] + ": " + util.GetVar(args[0]));
-                        } catch {
+                        }
+                        catch
+                        {
                             // Some vars might return FAIL if not supported, but fastboot usually shows blank or error
                             Console.WriteLine(args[0] + ": ");
                         }
@@ -139,13 +147,13 @@ namespace FastbootCLI
                     break;
                 case "reboot":
                     if (args.Count == 0 || args[0] == "system") util.RawCommand("reboot");
-                    else if (args[0] == "bootloader") util.RebootBootloader();
+                    else if (args[0] == "bootloader") util.Reboot("bootloader");
                     else if (args[0] == "recovery") util.Reboot("recovery");
                     else if (args[0] == "fastboot") util.Reboot("fastboot");
                     else util.RawCommand("reboot-" + args[0]);
                     break;
                 case "reboot-bootloader":
-                    util.RebootBootloader();
+                    util.Reboot("bootloader");
                     break;
                 case "reboot-recovery":
                     util.Reboot("recovery");
@@ -159,10 +167,10 @@ namespace FastbootCLI
                         string part = args[0];
                         string? file = args.Count > 1 ? args[1] : null;
                         if (file == null) throw new Exception("flash: filename required (auto-discovery not implemented)");
-                        
+
                         string target = part;
                         if (slot != null && util.HasSlot(part)) target = part + "_" + slot;
-                        
+
                         util.FlashImage(target, file);
                     }
                     break;
@@ -253,9 +261,32 @@ namespace FastbootCLI
             return long.Parse(sizeStr);
         }
 
+        static List<UsbDevice> GetAllDevices()
+        {
+            if (forceLibUsb)
+            {
+                return LibUsbFinder.FindDevice();
+            }
+
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                return WinUSBFinder.FindDevice();
+            }
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+            {
+                return LinuxUsbFinder.FindDevice();
+            }
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+            {
+                return MacOSUsbFinder.FindDevice();
+            }
+            // Fallback to libusb
+            return LibUsbFinder.FindDevice();
+        }
+
         static void ListDevices()
         {
-            var devices = WinUSBFinder.FindDevice();
+            var devices = GetAllDevices();
             foreach (var dev in devices)
             {
                 dev.GetSerialNumber();
@@ -265,13 +296,21 @@ namespace FastbootCLI
 
         static FastbootUtil? ConnectDevice()
         {
-            var devices = WinUSBFinder.FindDevice();
+            var devices = GetAllDevices();
             if (devices.Count == 0) return null;
 
             UsbDevice? target = null;
             if (serial != null)
             {
-                target = devices.FirstOrDefault(d => { d.GetSerialNumber(); return d.SerialNumber == serial; });
+                foreach (var d in devices)
+                {
+                    d.GetSerialNumber();
+                    if (d.SerialNumber == serial)
+                    {
+                        target = d;
+                        break;
+                    }
+                }
             }
             else
             {
@@ -279,6 +318,7 @@ namespace FastbootCLI
             }
 
             if (target == null) return null;
+            if (target.CreateHandle() != 0) return null;
             return new FastbootUtil(target);
         }
 
@@ -302,6 +342,7 @@ namespace FastbootCLI
             Console.WriteLine("options:");
             Console.WriteLine("  -w                                       Erase userdata and cache");
             Console.WriteLine("  -s <serial>                              Specify device serial number");
+            Console.WriteLine("  -l, --libusb                             Force use libusb implementation");
             Console.WriteLine("  --slot <slot>                            Specify slot name");
             Console.WriteLine("  --version                                Show version");
         }

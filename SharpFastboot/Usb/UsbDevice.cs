@@ -1,11 +1,4 @@
-﻿using SharpFastboot.DataModel;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace SharpFastboot.Usb
+﻿namespace SharpFastboot.Usb
 {
     public abstract class UsbDevice : IDisposable
     {
@@ -16,6 +9,7 @@ namespace SharpFastboot.Usb
         public abstract long Write(byte[] data, int length);
         public abstract int GetSerialNumber();
         public abstract int CreateHandle();
+        public abstract void Reset();
         public abstract void Dispose();
     }
 
@@ -24,6 +18,7 @@ namespace SharpFastboot.Usb
         WinLegacy = 0,
         WinUSB = 1,
         Linux = 2,
-        LibUSB = 3
+        LibUSB = 3,
+        MacOS = 4
     }
 }

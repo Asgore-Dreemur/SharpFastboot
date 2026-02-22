@@ -1,7 +1,6 @@
 using SharpFastboot.DataModel;
 using SharpFastboot.Usb;
 using System.Text;
-using Xunit;
 
 namespace SharpFastboot.Tests
 {
@@ -28,8 +27,9 @@ namespace SharpFastboot.Tests
             }
 
             public override long Write(byte[] data, int length) => length;
-            public override Exception? GetSerialNumber() => null;
-            public override Exception? CreateHandle() => null;
+            public override int GetSerialNumber() => 0;
+            public override int CreateHandle() => 0;
+            public override void Reset() { }
             public override void Dispose() { }
         }
 

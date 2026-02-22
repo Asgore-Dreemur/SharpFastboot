@@ -41,7 +41,7 @@ public class StreamDataProvider(Stream stream, long offset, long length, bool le
         return stream.Read(buffer, bufferOffset, toRead);
     }
 
-    public ISparseDataProvider GetSubProvider(long subOffset, long subLength) 
+    public ISparseDataProvider GetSubProvider(long subOffset, long subLength)
         => new StreamDataProvider(stream, offset + subOffset, subLength, true);
 
     public void Dispose()

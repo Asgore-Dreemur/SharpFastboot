@@ -1,7 +1,6 @@
 using SharpFastboot.DataModel;
 using System.Runtime.InteropServices;
 using System.Text;
-using Xunit;
 
 namespace SharpFastboot.Tests
 {

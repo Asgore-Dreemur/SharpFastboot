@@ -1,6 +1,3 @@
-using Microsoft.Win32.SafeHandles;
-using System.IO;
-
 namespace LibSparseSharp;
 
 public class FileDataProvider(string filePath, long offset, long length) : ISparseDataProvider
@@ -14,7 +11,7 @@ public class FileDataProvider(string filePath, long offset, long length) : ISpar
         var buffer = new byte[1024 * 1024];
         var remaining = length;
         long currentOffset = offset;
-        
+
         while (remaining > 0)
         {
             var toRead = (int)Math.Min(buffer.Length, remaining);
@@ -42,7 +39,7 @@ public class FileDataProvider(string filePath, long offset, long length) : ISpar
         return RandomAccess.Read(fs.SafeFileHandle, buffer.AsSpan(bufferOffset, toRead), offset + inOffset);
     }
 
-    public ISparseDataProvider GetSubProvider(long subOffset, long subLength) 
+    public ISparseDataProvider GetSubProvider(long subOffset, long subLength)
         => new FileDataProvider(filePath, offset + subOffset, subLength);
 
     public void Dispose() { }

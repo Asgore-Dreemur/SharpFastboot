@@ -1,13 +1,6 @@
-﻿using SharpFastboot.DataModel;
-using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Linq;
+﻿using System.ComponentModel;
 using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading.Tasks;
 using static SharpFastboot.Usb.Windows.Win32API;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace SharpFastboot.Usb.Windows
 {
@@ -100,7 +93,6 @@ namespace SharpFastboot.Usb.Windows
                     return requiredSize;
                 throw new Win32Exception(error);
             }
-            //absolutely impossible
             throw new Win32Exception(ERROR_INSUFFICIENT_BUFFER);
         }
 
@@ -114,6 +106,6 @@ namespace SharpFastboot.Usb.Windows
             bool ret = DeviceIoControl(hUsb, IoGetDescriptorCode, Array.Empty<byte>(), 0, data, 32, out bytes_get, IntPtr.Zero);
             CloseHandle(hUsb);
             return ret;
-        } 
+        }
     }
 }

@@ -1,25 +1,29 @@
-﻿using SharpFastboot;
-using SharpFastboot.Usb;
-using SharpFastboot.Usb.Windows;
-using System.Runtime.InteropServices;
-using System.Text;
-using LibSparseSharp;
+﻿using LibUsbDotNet.LibUsb;
 
 namespace Demo
 {
-    static class Demo
+    static class Program
     {
         static void Main(string[] args)
         {
-            var result = WinUSBFinder.FindDevice();
-            UsbDevice usb = result[0];
-            FastbootUtil util = new FastbootUtil(usb);
-            util.CurrentStepChanged += (sender, e) => Console.WriteLine(e);
-            util.ReceivedFromDevice += (sender, e) => Console.WriteLine(e.NewInfo);
-            var resp = util.OemCommand("lks");
-            Console.WriteLine(resp.Result);
-            //util.FlashSparseImage("super", "G:\\tools\\simg2img\\super.img");
-            //util.Reboot();
+            Console.WriteLine("--- IUsbDevice Properties ---");
+            foreach (var prop in typeof(IUsbDevice).GetProperties().OrderBy(p => p.Name))
+                Console.WriteLine($"Prop: {prop.Name} ({prop.PropertyType.Name})");
+
+            Console.WriteLine("\n--- UsbEndpointReader Members ---");
+            foreach (var prop in typeof(UsbEndpointReader).GetProperties().OrderBy(p => p.Name))
+                Console.WriteLine($"Prop: {prop.Name} ({prop.PropertyType.Name})");
+            foreach (var method in typeof(UsbEndpointReader).GetMethods().OrderBy(m => m.Name))
+            {
+                var parameters = string.Join(", ", method.GetParameters().Select(p => $"{p.ParameterType.Name} {p.Name}"));
+                Console.WriteLine($"Method: {method.Name}({parameters})");
+            }
+
+            Console.WriteLine("\n--- UsbEndpointWriter Members ---");
+            foreach (var prop in typeof(UsbEndpointWriter).GetProperties().OrderBy(p => p.Name))
+                Console.WriteLine($"Prop: {prop.Name} ({prop.PropertyType.Name})");
+            foreach (var method in typeof(UsbEndpointWriter).GetMethods().OrderBy(m => m.Name))
+                Console.WriteLine($"Method: {method.Name}");
         }
     }
 }

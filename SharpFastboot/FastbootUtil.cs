@@ -2,13 +2,7 @@
 using SharpFastboot.DataModel;
 using SharpFastboot.Usb;
 using System.Runtime.InteropServices;
-using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace SharpFastboot
 {
@@ -123,7 +117,7 @@ namespace SharpFastboot
         /// <summary>
         /// 获取所有属性
         /// </summary>
-        public Dictionary<string,string> GetVarAll()
+        public Dictionary<string, string> GetVarAll()
         {
             return RawCommand("getvar:all")
                 .ThrowIfError()
@@ -175,7 +169,7 @@ namespace SharpFastboot
                 if (readSize <= 0) break;
                 UsbDevice.Write(buffer, readSize);
                 bytesRead += readSize;
-                if(onEvent)
+                if (onEvent)
                     DataTransferProgressChanged?.Invoke(this, (bytesRead, length));
             }
             return HandleResponse();
@@ -262,11 +256,11 @@ namespace SharpFastboot
             int count = 1;
             FastbootResponse response = new FastbootResponse();
             int max_download_size = SparseMaxDownloadSize;
-            int.TryParse(GetVar("max-download-size").TrimStart("0x"), 
+            int.TryParse(GetVar("max-download-size").TrimStart("0x"),
                 System.Globalization.NumberStyles.HexNumber, null, out max_download_size);
             SparseFile sfile = SparseFile.FromImageFile(filePath);
             var parts = sfile.Resparse(max_download_size);
-            foreach(var item in parts)
+            foreach (var item in parts)
             {
                 Stream stream = item.GetExportStream(0, item.Header.TotalBlocks);
                 CurrentStepChanged?.Invoke(this, $"Sending {partition}({count} / {parts.Count})");
@@ -533,12 +527,12 @@ namespace SharpFastboot
 
             // 2. 刷入各个分区
             // 标准动态分区和常用 A/B 分区列表
-            string[] flashable = { 
-                "boot", "init_boot", "vendor_boot", 
-                "dtbo", 
+            string[] flashable = {
+                "boot", "init_boot", "vendor_boot",
+                "dtbo",
                 "vbmeta", "vbmeta_system", "vbmeta_vendor",
                 "recovery",
-                "system", "vendor", "product", "system_ext", "odm", 
+                "system", "vendor", "product", "system_ext", "odm",
                 "vendor_dlkm", "odm_dlkm", "system_dlkm",
                 "super" // 如果是 super 镜像（通常在 super.img 中，包含系统分区逻辑组合）
             };

@@ -1,12 +1,6 @@
-﻿using SharpFastboot.DataModel;
-using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Linq;
-using System.Net.NetworkInformation;
+﻿using System.ComponentModel;
 using System.Runtime.InteropServices;
 using System.Text;
-using System.Threading.Tasks;
 using static SharpFastboot.Usb.Windows.Win32API;
 
 namespace SharpFastboot.Usb.Windows
@@ -33,11 +27,16 @@ namespace SharpFastboot.Usb.Windows
             return 0;
         }
 
+        public override void Reset()
+        {
+            // Not supported in legacy driver
+        }
+
         public override int GetSerialNumber()
         {
             byte[] serial = new byte[512];
             int bytes_get;
-            if(DeviceIoControl(DeviceHandle, IoGetSerialCode, Array.Empty<byte>(), 0, serial, 512, out bytes_get, IntPtr.Zero))
+            if (DeviceIoControl(DeviceHandle, IoGetSerialCode, Array.Empty<byte>(), 0, serial, 512, out bytes_get, IntPtr.Zero))
             {
                 SerialNumber = Encoding.UTF8.GetString(serial);
                 return 0;
@@ -67,7 +66,7 @@ namespace SharpFastboot.Usb.Windows
             if (WriteBulkHandle == IntPtr.Zero)
                 throw new Exception("Write handle is closed.");
 
-            if(WriteFile(WriteBulkHandle, data, (uint)length, out bytesWrite, IntPtr.Zero))
+            if (WriteFile(WriteBulkHandle, data, (uint)length, out bytesWrite, IntPtr.Zero))
             {
                 return (long)bytesWrite;
             }

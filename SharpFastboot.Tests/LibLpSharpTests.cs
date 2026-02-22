@@ -1,7 +1,6 @@
 using LibLpSharp;
-using System.Security.Cryptography;
 using System.Runtime.InteropServices;
-using Xunit;
+using System.Security.Cryptography;
 
 namespace SharpFastboot.Tests
 {
@@ -36,7 +35,7 @@ namespace SharpFastboot.Tests
             };
 
             var buffer = ToBytes(geometry);
-            
+
             // Re-calculate checksum for the test
             using var sha256 = SHA256.Create();
             byte[] forChecksum = (byte[])buffer.Clone();

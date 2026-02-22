@@ -8,6 +8,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="LibUsbDotNet" Version="3.0.167-alpha" />
     <ProjectReference Include="..\LibLpSharp\LibLpSharp.csproj" />
     <ProjectReference Include="..\LibSparseSharp\LibSparseSharp.csproj" />
   </ItemGroup>

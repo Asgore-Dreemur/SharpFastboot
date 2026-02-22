@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading.Tasks;
-using static SharpFastboot.Usb.Windows.Win32API;
+﻿using System.Runtime.InteropServices;
 
 namespace SharpFastboot.Usb.Windows
 {
@@ -42,7 +36,7 @@ namespace SharpFastboot.Usb.Windows
         public static extern bool WinUsb_GetCurrentAlternateSetting(IntPtr InterfaceHandle, out byte InterfaceNum);
 
         [DllImport("Winusb.dll", CharSet = CharSet.Auto, CallingConvention = CallingConvention.StdCall, SetLastError = true)]
-        public static extern bool WinUsb_GetDescriptor(IntPtr DeviceHandle, byte DescriptorType, byte index, ushort LangID, 
+        public static extern bool WinUsb_GetDescriptor(IntPtr DeviceHandle, byte DescriptorType, byte index, ushort LangID,
             IntPtr buffer, uint bufferLen, out uint lengthTransfered);
 
         [DllImport("Winusb.dll", CharSet = CharSet.Auto, CallingConvention = CallingConvention.StdCall, SetLastError = true)]
@@ -58,6 +52,9 @@ namespace SharpFastboot.Usb.Windows
         [DllImport("Winusb.dll", CharSet = CharSet.Auto, CallingConvention = CallingConvention.StdCall, SetLastError = true)]
         public static extern bool WinUsb_ReadPipe(IntPtr DeviceHandle, byte pipeID, byte[] buffer,
             ulong bufferLen, out ulong bytesTransfered, IntPtr overlapp);
+
+        [DllImport("Winusb.dll", CharSet = CharSet.Auto, CallingConvention = CallingConvention.StdCall, SetLastError = true)]
+        public static extern bool WinUsb_ResetPipe(IntPtr InterfaceHandle, byte PipeID);
 
         [DllImport("Winusb.dll", CharSet = CharSet.Auto, CallingConvention = CallingConvention.StdCall, SetLastError = true)]
         public static extern bool WinUsb_SetPipePolicy(IntPtr InterfaceHandle, byte PipeID, uint PolicyType, uint ValueLength, ref uint Value);

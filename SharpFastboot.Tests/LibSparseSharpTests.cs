@@ -1,6 +1,5 @@
 using LibSparseSharp;
 using System.Buffers.Binary;
-using Xunit;
 
 namespace SharpFastboot.Tests
 {

@@ -1,13 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.ComponentModel;
+using System.Runtime.InteropServices;
 using static SharpFastboot.Usb.Windows.Win32API;
 using static SharpFastboot.Usb.Windows.WinUSBAPI;
-using System.Runtime.InteropServices;
-using System.ComponentModel;
-using SharpFastboot.DataModel;
 
 namespace SharpFastboot.Usb.Windows
 {
@@ -43,17 +37,17 @@ namespace SharpFastboot.Usb.Windows
                 return Marshal.GetLastWin32Error();
             USBDeviceConfigDescriptor = Marshal.PtrToStructure<USBDeviceConfigDescriptor>(ptr);
             Marshal.FreeHGlobal(ptr);
-            if(!WinUsb_QueryInterfaceSettings(WinUSBHandle, InterfaceNum, out USBDeviceInterfaceDescriptor))
+            if (!WinUsb_QueryInterfaceSettings(WinUSBHandle, InterfaceNum, out USBDeviceInterfaceDescriptor))
                 return Marshal.GetLastWin32Error();
 
             for (byte endpoint = 0; endpoint < USBDeviceInterfaceDescriptor.bNumEndpoints; endpoint++)
             {
                 WinUSBPipeInfo pipeInfo;
-                if(!WinUsb_QueryPipe(WinUSBHandle, InterfaceNum, endpoint, out pipeInfo))
+                if (!WinUsb_QueryPipe(WinUSBHandle, InterfaceNum, endpoint, out pipeInfo))
                     return Marshal.GetLastWin32Error();
                 if (pipeInfo.PipeType == WinUSBPipeType.UsbdPipeTypeBulk)
                 {
-                    if((pipeInfo.PipeID & USB_ENDPOINT_DIRECTION_MASK) != 0)
+                    if ((pipeInfo.PipeID & USB_ENDPOINT_DIRECTION_MASK) != 0)
                     {
                         if (ReadBulkID == 0)
                         {
@@ -75,10 +69,22 @@ namespace SharpFastboot.Usb.Windows
 
             byte bTrue = 1;
             byte bFalse = 0;
+            uint timeout = 5000;
             WinUsb_SetPipePolicy(WinUSBHandle, ReadBulkID, AUTO_CLEAR_STALL, 1, ref bTrue);
             WinUsb_SetPipePolicy(WinUSBHandle, WriteBulkID, AUTO_CLEAR_STALL, 1, ref bTrue);
+            WinUsb_SetPipePolicy(WinUSBHandle, ReadBulkID, PIPE_TRANSFER_TIMEOUT, 4, ref timeout);
+            WinUsb_SetPipePolicy(WinUSBHandle, WriteBulkID, PIPE_TRANSFER_TIMEOUT, 4, ref timeout);
             WinUsb_SetPipePolicy(WinUSBHandle, WriteBulkID, SHORT_PACKET_TERMINATE, 1, ref bFalse);
             return 0;
+        }
+
+        public override void Reset()
+        {
+            if (WinUSBHandle != IntPtr.Zero)
+            {
+                if (ReadBulkID != 0) WinUsb_ResetPipe(WinUSBHandle, ReadBulkID);
+                if (WriteBulkID != 0) WinUsb_ResetPipe(WinUSBHandle, WriteBulkID);
+            }
         }
 
         public override int GetSerialNumber()
@@ -90,7 +96,7 @@ namespace SharpFastboot.Usb.Windows
                 USBDeviceDescriptor.iSerialNumber, 0x0409,
                 ptr, descriptorSize, out bytes_get))
             {
-                if((uint)Marshal.GetLastWin32Error() != (uint)ERROR_INSUFFICIENT_BUFFER)
+                if ((uint)Marshal.GetLastWin32Error() != (uint)ERROR_INSUFFICIENT_BUFFER)
                     return Marshal.GetLastWin32Error();
                 descriptorSize *= 2;
                 Marshal.FreeHGlobal(ptr);
